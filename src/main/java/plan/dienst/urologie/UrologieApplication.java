@@ -60,6 +60,8 @@ public class UrologieApplication implements CommandLineRunner {
 		urlaub(DIMI, 2,24,3,12);
 		urlaub(CHRISTOPH, 3,13,3,28);
 		urlaub(NIGEL,2,3,2,4);
+		urlaub(MICHAL, 1, 13, 1, 21);
+		urlaub(TIMO, 3, 2, 3, 17);
 
 		planBuilder.makePlan(2024, 1); // Call the makePlan() method when the application starts
 	}

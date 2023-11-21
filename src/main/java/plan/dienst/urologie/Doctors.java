@@ -19,7 +19,7 @@ public class Doctors {
         PAKTIS, MICHAL, DIMI, TIMO, PATRICK, JETTE, CHRISTOPH, NIGEL, MARK, SEBASTIAN, SABINE
     }
 
-    private Doctor paktis = new Doctor.Builder()
+    private final Doctor paktis = new Doctor.Builder()
             .setEnum(PAKTIS)
             .setName("Paktis")
             .setVollzeit(true)
@@ -27,7 +27,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor michal = new Doctor.Builder()
+    private final Doctor michal = new Doctor.Builder()
             .setEnum(MICHAL)
             .setName("Michal")
             .setVollzeit(true)
@@ -35,7 +35,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor dimi = new Doctor.Builder()
+    private final Doctor dimi = new Doctor.Builder()
             .setEnum(DIMI)
             .setName("Dimi")
             .setVollzeit(true)
@@ -43,7 +43,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor timo = new Doctor.Builder()
+    private final Doctor timo = new Doctor.Builder()
             .setEnum(TIMO)
             .setName("Timo")
             .setVollzeit(true)
@@ -51,15 +51,15 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor patrick = new Doctor.Builder()
+    private final Doctor patrick = new Doctor.Builder()
             .setEnum(PATRICK)
             .setName("Patrick")
             .setVollzeit(true)
             .setMaxDiensteImMonat(14)
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
-            .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
+            .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY)
             .build();
-    private Doctor jette = new Doctor.Builder()
+    private final Doctor jette = new Doctor.Builder()
             .setEnum(JETTE)
             .setName("Jette")
             .setVollzeit(false)
@@ -67,7 +67,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, THURSDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor christoph = new Doctor.Builder()
+    private final Doctor christoph = new Doctor.Builder()
             .setEnum(CHRISTOPH)
             .setName("Christoph")
             .setVollzeit(false)
@@ -75,7 +75,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor nigel = new Doctor.Builder()
+    private final Doctor nigel = new Doctor.Builder()
             .setEnum(NIGEL)
             .setName("Nigel")
             .setVollzeit(true)
@@ -83,7 +83,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor mark = new Doctor.Builder()
+    private final Doctor mark = new Doctor.Builder()
             .setEnum(MARK)
             .setName("Mark")
             .setVollzeit(true)
@@ -91,7 +91,7 @@ public class Doctors {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();
-    private Doctor sebastian = new Doctor.Builder()
+    private final Doctor sebastian = new Doctor.Builder()
             .setEnum(SEBASTIAN)
             .setName("Sebastian")
             .setVollzeit(false)
@@ -99,7 +99,7 @@ public class Doctors {
             .setVerfugbareTage()
             .setVerfugbareTageDienst()
             .build();
-    private Doctor sabine = new Doctor.Builder()
+    private final Doctor sabine = new Doctor.Builder()
             .setEnum(SABINE)
             .setName("Sabine")
             .setVollzeit(false)
@@ -123,7 +123,7 @@ public class Doctors {
         allDoctors.add(sabine);
     }
 
-    private Map<DocName, Doctor> doctorMap = new HashMap<>();
+    private final Map<DocName, Doctor> doctorMap = new HashMap<>();
     {
         doctorMap.put(PAKTIS, paktis);
         doctorMap.put(MICHAL, michal);
