@@ -11,17 +11,15 @@ public class ShiftOrganizer {
     private final ShiftDecider shiftDecider;
     private final Doctors doctors;
     private final Dienstplan dienstplan;
-    private final DayJobDecider dayJobDecider;
     private final Jobs jobs;
     private final DataFinder dataFinder;
     private final Explanations explanations;
 
     public ShiftOrganizer(ShiftDecider shiftDecider, Doctors doctors, Dienstplan dienstplan,
-                          DayJobDecider dayJobDecider, Jobs jobs, DataFinder dataFinder, Explanations explanations) {
+                          Jobs jobs, DataFinder dataFinder, Explanations explanations) {
         this.shiftDecider = shiftDecider;
         this.doctors = doctors;
         this.dienstplan = dienstplan;
-        this.dayJobDecider = dayJobDecider;
         this.jobs = jobs;
         this.dataFinder = dataFinder;
         this.explanations = explanations;

@@ -25,7 +25,8 @@ public class Dienstplan {
         endDate = dates.getEndDate(jahr, quartil);
         // Iterate over the range of dates
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            schedule.computeIfAbsent(date, k -> new DailyPlan());
+            LocalDate finalDate = date;
+            schedule.computeIfAbsent(date, k -> new DailyPlan(finalDate));
         }
     }
 
@@ -56,20 +57,13 @@ public class Dienstplan {
         return getAssignedDoctors(date, job).contains(doctor);
     }
 
-    // Method to add a doctor to a specific shift on a given date
-    public void assignDoctors(LocalDate date, Job job, List<Doctor> doctors) {
-        // If the date is not in the schedule, create a new map
-        schedule.computeIfAbsent(date, k -> new DailyPlan());
-        // Assign the doctor to the shift for the given date
-        schedule.get(date).addDoctors(job, doctors);
-        //System.out.println(date + " " + doctor.getName() + " " + shift.getName());
-    }
-
     public void assignDoctors(LocalDate date, Job job, Doctor... doctors) {
         // If the date is not in the schedule, create a new map
-        schedule.computeIfAbsent(date, k -> new DailyPlan());
+        schedule.computeIfAbsent(date, k -> new DailyPlan(date));
         // Assign the doctor to the shift for the given date
         schedule.get(date).addDoctors(job, doctors);
+        //System.out.print(date + " " + job.getJobEnum());
+        //for (Doctor doctor : doctors) System.out.print(" " + doctor.getName()); System.out.println();
     }
 
     // Method to get the doctor assigned to a specific shift on a given date

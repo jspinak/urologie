@@ -2,8 +2,11 @@ package plan.dienst.urologie;
 
 import org.springframework.stereotype.Component;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
+
+import static plan.dienst.urologie.Jobs.JobName.URLAUB;
 
 @Component
 public class PlanBuilder {
@@ -107,7 +110,23 @@ public class PlanBuilder {
         LocalDate endDate = LocalDate.of(2024, months[months.length-1], 1);
         System.out.println("Plan Deficiencies");
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            for (Job job : jobs.getAllJobs()) printIfDeficient(date, job);
+            Set<Doctor> docsAssigned = new HashSet<>();
+            for (Job job : jobs.getAllJobs()) {
+                printIfDeficient(date, job);
+                List<Doctor> assigned = dienstplan.getAssignedDoctors(date, job);
+                docsAssigned.addAll(assigned);
+            }
+            docsAssigned.addAll(dienstplan.getAssignedDoctors(date, jobs.getUrlaub()));
+            DayOfWeek d = date.getDayOfWeek();
+            for (Doctor doc : doctors.getAllDoctors()) {
+                if (!docsAssigned.contains(doc) &&
+                        (doc.getVerfugbareTage().contains(d) || doc.getVerfugbareTageDienst().contains(d))
+                && !dienstplan.getAssignedDoctors(date.minusDays(1), jobs.getDienst()).contains(doc)
+                && d != DayOfWeek.SATURDAY && d != DayOfWeek.SUNDAY) {
+                    System.out.println(d + " doc should be working: " + doc.getName());
+                    for (Job j : jobs.getAllJobs()) printExplanations(date, j);
+                }
+            }
         }
     }
 
@@ -120,17 +139,21 @@ public class PlanBuilder {
             else fullness += .5;
         }
         boolean jobNotFull = job.getJobEnum().equals(Jobs.JobName.DIENST) ? fullness < .5 : fullness < 1;
-        if (jobScheduled && jobNotFull) printExplanations(date, job, assignedDoctors);
+        if (jobScheduled && jobNotFull) {
+            for (Job j : jobs.getAllJobs()) printExplanations(date, j);
+        }
     }
 
-    private void printExplanations(LocalDate date, Job job, List<Doctor> assignedDoctors) {
+    private void printExplanations(LocalDate date, Job job) {
+        List<Doctor> assignedDoctors = dienstplan.getAssignedDoctors(date, job);
         System.out.print("\n" + job.getName() + " " + date + " " + date.getDayOfWeek());
         assignedDoctors.forEach(doc -> System.out.print(" " + doc.getName()));
         System.out.println();
         for (Map.Entry<Doctors.DocName, List<String>> exp :
                 explanations.getExplanations(date, job.getJobEnum()).entrySet()) {
-            System.out.println("  " + exp.getKey());
-            for (String str : exp.getValue()) System.out.println("\t" + str);
+            System.out.print("  " + exp.getKey() + " ");
+            for (String str : exp.getValue()) System.out.print("\t" + str);
+            System.out.println();
         }
     }
 
