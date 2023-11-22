@@ -57,13 +57,13 @@ public class Doctors {
             .setVollzeit(true)
             .setMaxDiensteImMonat(14)
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
-            .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY)
+            .setVerfugbareTageDienst(MONDAY, TUESDAY, WEDNESDAY, THURSDAY)
             .build();
     private final Doctor jette = new Doctor.Builder()
             .setEnum(JETTE)
             .setName("Jette")
             .setVollzeit(false)
-            .setMaxDiensteImMonat(2)
+            .setMaxDiensteImMonat(3)
             .setVerfugbareTage(MONDAY, TUESDAY, THURSDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, SATURDAY, SUNDAY)
             .build();
@@ -71,7 +71,7 @@ public class Doctors {
             .setEnum(CHRISTOPH)
             .setName("Christoph")
             .setVollzeit(false)
-            .setMaxDiensteImMonat(3)
+            .setMaxDiensteImMonat(4)
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, FRIDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, TUESDAY, FRIDAY, SATURDAY, SUNDAY)
             .build();

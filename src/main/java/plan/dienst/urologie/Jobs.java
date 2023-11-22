@@ -64,7 +64,7 @@ public class Jobs {
             .setVerfugbareTage(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
             .setOneDoctorPerWeek(false)
             .setDifferentDoctorsOnConsecutiveDays(true)
-            .setMaxPerMonthPerDoctor(4)
+            .setMaxPerMonthPerDoctor(5)
             .setMaxPerMonthPerDoctorOnWeekends(2)
             .setMaxDoctorsPerDay(1)
             .build();

@@ -46,6 +46,7 @@ public class UrologieApplication implements CommandLineRunner {
 		dienst(SABINE,1,20);
 		dienst(SABINE, 2, 17);
 		dienst(SABINE,3,23);
+		dienst(SABINE,2,24);
 		dienst(SEBASTIAN, 1, 13);
 		dienst(SEBASTIAN, 2, 3);
 		dienst(SEBASTIAN, 3,2);

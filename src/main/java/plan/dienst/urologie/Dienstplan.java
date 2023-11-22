@@ -48,6 +48,16 @@ public class Dienstplan {
         return schedule.get(date).hasJob(job);
     }
 
+    public boolean areAllAssignedInMonth(LocalDate date, Job job) {
+        boolean everyJobDone = true;
+        LocalDate startDate = LocalDate.of(date.getYear(), date.getMonth(), 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+        for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(1)) {
+            if (!isAssigned(d, job)) everyJobDone = false;
+        }
+        return everyJobDone;
+    }
+
     public List<Doctor> ifAssignedGetDoctors(LocalDate date, Job job) {
         if (!isAssigned(date, job)) return new ArrayList<>();
         return schedule.get(date).getDoctors(job);

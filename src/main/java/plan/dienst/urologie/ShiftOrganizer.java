@@ -34,7 +34,12 @@ public class ShiftOrganizer {
      */
     public void scheduleShifts(int year, int month) {
         scheduleConstrainedDoctors(year, month);
-        scheduleNonConstrainedDoctors(year, month);
+        boolean allDocsFull, allShiftsAssigned;
+        for (int i=0; i<10; i++) {
+            allDocsFull = scheduleByShiftsWorked(year, month);
+            allShiftsAssigned = dienstplan.areAllAssignedInMonth(LocalDate.of(year, month, 1), jobs.getDienst());
+            if (allDocsFull || allShiftsAssigned) return;
+        }
     }
 
     private void sortDoctorsByConstraints() {
@@ -50,13 +55,15 @@ public class ShiftOrganizer {
         dataFinder.sortDoctorsByShiftAvailability(y, m, doctors.getAllDoctors());
     }
 
-    private void scheduleNonConstrainedDoctors(int year, int month) {
+    private boolean scheduleByShiftsWorked(int year, int month) {
         sortDoctorsByShiftsWorkedLastMonth(year, month);
+        boolean allDoctorsFullShifts = true;
         //System.out.println("\n_____ remaining dienste _____");
         for (Doctor doctor : doctors.getAllDoctors()) {
             //System.out.println(doctor.getName() + " " + doctor.getCalc() + " month-" + month);
-            scheduleDoctorUntilFull(doctor, year, month);
+            if (scheduleDoctor(2, doctor, year, month)) allDoctorsFullShifts = false;
         }
+        return allDoctorsFullShifts;
     }
 
     private void scheduleConstrainedDoctors(int year, int month) {
@@ -64,27 +71,32 @@ public class ShiftOrganizer {
         int notConstrained = 7;
         for (Doctor doctor : doctors.getAllDoctors()) {
             if (doctor.getVerfugbareTageDienst().size() < notConstrained && !doctor.getVerfugbareTageDienst().isEmpty()) {
-                scheduleDoctorUntilFull(doctor, year, month);
+                scheduleDoctor(5, doctor, year, month);
             }
         }
     }
 
-    private void scheduleDoctorUntilFull(Doctor doctor, int year, int month) {
+    // schedules until full or maxToSchedule reached
+    private boolean scheduleDoctor(int maxToSchedule, Doctor doctor, int year, int month) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+        int scheduled = 0;
+        boolean allShiftsScheduled = false;
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             if (shiftDecider.canWorkShift(doctor, date)) {
                 if (jobs.getOp().getVerfugbareTage().contains(date.getDayOfWeek())) {
                     dienstplan.assignDoctors(date, jobs.getOp(), doctor);
                 }
                 dienstplan.assignDoctors(date, jobs.getDienst(), doctor);
+                scheduled++;
             }
-            if (maxShiftsInMonth(doctor, year, month)) {
+            if (scheduled == maxToSchedule || maxShiftsInMonth(doctor, year, month)) {
                 //System.out.println("max shifts reached: "+doctor.getName()+" "+date);
                 explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "Doc has worked too many shifts this month.");
-                return;
+                return maxShiftsInMonth(doctor, year, month);
             }
         }
+        return maxShiftsInMonth(doctor, year, month);
     }
 
     private boolean maxShiftsInMonth(Doctor doctor, int year, int month) {
