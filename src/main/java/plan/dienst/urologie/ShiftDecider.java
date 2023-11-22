@@ -32,6 +32,7 @@ public class ShiftDecider {
         boolean workedTooManyWeekendShiftsThisMonth = hasWorkedTooManyWeekendShiftsThisMonth(doctor, date);
         boolean workedShiftDayBefore = isWorkedShiftDayBefore(doctor, date);
         boolean okForDoctorThatDay = isOkForDoctorThatDay(doctor, date);
+        boolean hasVacation = dienstplan.isDoctorWorking(date, jobs.getUrlaub(), doctor);
         if (!shiftAvailable) {
             explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "Someone is already assigned for today's shift.");
             return false;
@@ -54,6 +55,10 @@ public class ShiftDecider {
         }
         if (!okForDoctorThatDay) {
             explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "Doc doens't work shifts this day of the week.");
+            return false;
+        }
+        if (weekend && hasVacation) {
+            explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "It's the weekend and the Doc has vacation today.");
             return false;
         }
         return true;
