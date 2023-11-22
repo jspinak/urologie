@@ -63,7 +63,7 @@ public class Doctors {
             .setEnum(JETTE)
             .setName("Jette")
             .setVollzeit(false)
-            .setMaxDiensteImMonat(3)
+            .setMaxDiensteImMonat(2)
             .setVerfugbareTage(MONDAY, TUESDAY, THURSDAY, SATURDAY, SUNDAY)
             .setVerfugbareTageDienst(MONDAY, SATURDAY, SUNDAY)
             .build();
