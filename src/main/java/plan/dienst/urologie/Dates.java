@@ -32,13 +32,16 @@ public class Dates {
         }
     }
 
+    public LocalDate getNearestPreviousDayTo(LocalDate date, DayOfWeek dayOfWeek) {
+        if (date.getDayOfWeek() == dayOfWeek) {
+            return date;
+        } else return date.with(TemporalAdjusters.previous(dayOfWeek));
+    }
+
     public LocalDate getNearestNextDayTo(LocalDate date, DayOfWeek dayOfWeek) {
         if (date.getDayOfWeek() == dayOfWeek) {
-            return date; // date is already sunday
-        } else {
-            // Find the nearest next Sunday using TemporalAdjusters
-            return date.with(TemporalAdjusters.next(dayOfWeek));
-        }
+            return date;
+        } else return date.with(TemporalAdjusters.next(dayOfWeek));
     }
 
     public LocalDate getNearestNextSundayTo(int jahr, int monat, int tag) {

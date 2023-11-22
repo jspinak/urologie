@@ -106,13 +106,14 @@ public class PlanBuilder {
     }
 
     private void printPlanDeficiencies(int... months) {
+        boolean deficienciesExist = false;
         LocalDate startDate = LocalDate.of(2024, months[0], 1);
         LocalDate endDate = LocalDate.of(2024, months[months.length-1], 1);
         System.out.println("Plan Deficiencies");
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             Set<Doctor> docsAssigned = new HashSet<>();
             for (Job job : jobs.getAllJobs()) {
-                printIfDeficient(date, job);
+                if (printIfDeficient(date, job)) deficienciesExist = true;
                 List<Doctor> assigned = dienstplan.getAssignedDoctors(date, job);
                 docsAssigned.addAll(assigned);
             }
@@ -123,14 +124,17 @@ public class PlanBuilder {
                         (doc.getVerfugbareTage().contains(d) || doc.getVerfugbareTageDienst().contains(d))
                 && !dienstplan.getAssignedDoctors(date.minusDays(1), jobs.getDienst()).contains(doc)
                 && d != DayOfWeek.SATURDAY && d != DayOfWeek.SUNDAY) {
+                    deficienciesExist = true;
                     System.out.println(d + " doc should be working: " + doc.getName());
                     for (Job j : jobs.getAllJobs()) printExplanations(date, j);
                 }
             }
         }
+        if (!deficienciesExist) System.out.println("(no deficiencies found)");
     }
 
-    private void printIfDeficient(LocalDate date, Job job) {
+    private boolean printIfDeficient(LocalDate date, Job job) {
+        boolean deficienciesExist = false;
         boolean jobScheduled = job.getVerfugbareTage().contains(date.getDayOfWeek());
         List<Doctor> assignedDoctors = dienstplan.getAssignedDoctors(date, job);
         double fullness = 0;
@@ -138,21 +142,26 @@ public class PlanBuilder {
             if (doctor.isVollzeit()) fullness++;
             else fullness += .5;
         }
+        boolean jobEmpty = fullness == 0;
         boolean jobNotFull = job.getJobEnum().equals(Jobs.JobName.DIENST) ? fullness < .5 : fullness < 1;
-        if (jobScheduled && jobNotFull) {
+        if (jobScheduled && jobEmpty) { //jobNotFull) {
+            deficienciesExist = true;
+            System.out.println("_________________");
+            System.out.println("\n" + date + " " + date.getDayOfWeek());
             for (Job j : jobs.getAllJobs()) printExplanations(date, j);
         }
+        return deficienciesExist;
     }
 
     private void printExplanations(LocalDate date, Job job) {
         List<Doctor> assignedDoctors = dienstplan.getAssignedDoctors(date, job);
-        System.out.print("\n" + job.getName() + " " + date + " " + date.getDayOfWeek());
+        System.out.print("\n" + job.getName() + " |");
         assignedDoctors.forEach(doc -> System.out.print(" " + doc.getName()));
         System.out.println();
         for (Map.Entry<Doctors.DocName, List<String>> exp :
                 explanations.getExplanations(date, job.getJobEnum()).entrySet()) {
             System.out.print("  " + exp.getKey() + " ");
-            for (String str : exp.getValue()) System.out.print("\t" + str);
+            for (String str : exp.getValue()) System.out.print("  " + str);
             System.out.println();
         }
     }

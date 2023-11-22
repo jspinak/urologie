@@ -139,7 +139,10 @@ public class DayJobDecider {
             int available = 0;
             List<Doctor> notAvailable = dienstplan.getAssignedDoctors(d, jobs.getDienst(), jobs.getUrlaub());
             for (Doctor doctor : partTimers) {
-                if (doctor.getVerfugbareTage().contains(d.getDayOfWeek()) && !notAvailable.contains(doctor)) available++;
+                if (doctor.getVerfugbareTage().contains(d.getDayOfWeek())
+                        && !notAvailable.contains(doctor)
+                        && !dienstplan.getAssignedDoctors(d.minusDays(1), jobs.getDienst()).contains(doctor))
+                    available++;
             }
             if (available == 0) return false;
         }
