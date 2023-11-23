@@ -4,10 +4,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class Statistics {
@@ -38,13 +35,20 @@ public class Statistics {
         score += doctorsNotWorking() * 20;
         // uneven job distribution
         score += getShiftDistributionScore(getShiftDistribution(year, quartil)) * 10;
+        score += getOPdistributionScore(getOPdistribution(year, quartil));
         return score;
     }
 
     // perfect distribution returns 0
     public double getShiftDistributionScore(Map<Doctor, Double> shiftDistribution) {
         double score = 0;
-        for (double dist : shiftDistribution.values()) score += Math.abs(1-dist);
+        for (double dist : shiftDistribution.values()) score += dist;
+        return score;
+    }
+
+    public double getOPdistributionScore(Map<Doctor, Double> opDistribution) {
+        double score = 0;
+        for (double dist : opDistribution.values()) score += dist;
         return score;
     }
 
@@ -53,9 +57,34 @@ public class Statistics {
         for (Doctor doc : doctors.getAllDoctors()) {
             int totalAvailable = doc.getMaxDiensteImMonat() * 3;
             int totalWorked = dataFinder.getTimesDoctorScheduledThisQuarter(year, quartil, doc, jobs.getDienst());
-            shiftDistribution.put(doc, (double) totalWorked/ (double) totalAvailable);
+            shiftDistribution.put(doc, (double) totalWorked / (double) totalAvailable);
+        }
+        OptionalDouble average = shiftDistribution.values().stream().mapToDouble(Double::doubleValue).average();
+        for (Doctor doc : doctors.getAllDoctors()) {
+            double distFromAve = shiftDistribution.get(doc) - average.getAsDouble();
+            shiftDistribution.put(doc, distFromAve);
         }
         return shiftDistribution;
+    }
+
+    public Map<Doctor, Double> getOPdistribution(int year, int quartil) {
+        Map<Doctor, Double> OPdistribution = new HashMap<>();
+        int availableWeekdays = 0;
+        for (Doctor doc : doctors.getAllDoctors()) {
+            if (doc.getVerfugbareTage().contains(DayOfWeek.MONDAY)) availableWeekdays++;
+            if (doc.getVerfugbareTage().contains(DayOfWeek.TUESDAY)) availableWeekdays++;
+            if (doc.getVerfugbareTage().contains(DayOfWeek.WEDNESDAY)) availableWeekdays++;
+            if (doc.getVerfugbareTage().contains(DayOfWeek.THURSDAY)) availableWeekdays++;
+            if (doc.getVerfugbareTage().contains(DayOfWeek.FRIDAY)) availableWeekdays++;
+            int totalWorked = dataFinder.getTimesDoctorScheduledThisQuarter(year, quartil, doc, jobs.getOp());
+            OPdistribution.put(doc, (double) totalWorked / (double) availableWeekdays);
+        }
+        OptionalDouble average = OPdistribution.values().stream().mapToDouble(Double::doubleValue).average();
+        for (Doctor doc : doctors.getAllDoctors()) {
+            double distFromAve = OPdistribution.get(doc) - average.getAsDouble();
+            OPdistribution.put(doc, distFromAve);
+        }
+        return OPdistribution;
     }
 
     public int getEmptyJobs() {
