@@ -57,4 +57,8 @@ public class Dates {
         return getNearestNextSundayTo(jahr, quartil*3, 30); // could be more specific with 31 on some dates
     }
 
+    public boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+    }
+
 }

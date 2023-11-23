@@ -44,7 +44,7 @@ public class PlanBuilder {
     public void makePlan(int jahr, int quartil) {
         dienstplan.initDates(jahr, quartil);
         explanations.init(dienstplan.getStartDate(), dienstplan.getEndDate());
-        for (int i=quartil*3-2; i<=quartil*3; i++) shiftOrganizer.scheduleShifts(jahr, i);
+        shiftOrganizer.scheduleShifts(jahr, quartil);
         for (LocalDate date : dienstplan.getDates()) {
             assignDoctorsToDayJob(date, jobs.getEaz());
             assignDoctorsToDayJob(date, jobs.getZna());

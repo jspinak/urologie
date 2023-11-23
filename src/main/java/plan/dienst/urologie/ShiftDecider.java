@@ -14,23 +14,27 @@ public class ShiftDecider {
     private final DataFinder dataFinder;
     private final Dienstplan dienstplan;
     private final Explanations explanations;
+    private final Dates dates;
 
-    public ShiftDecider(Jobs jobs, Doctors doctors, DataFinder dataFinder, Dienstplan dienstplan, Explanations explanations) {
+    public ShiftDecider(Jobs jobs, Doctors doctors, DataFinder dataFinder, Dienstplan dienstplan, Explanations explanations,
+                        Dates dates) {
         this.jobs = jobs;
         this.doctors = doctors;
         this.dataFinder = dataFinder;
         this.dienstplan = dienstplan;
         this.explanations = explanations;
+        this.dates = dates;
     }
 
     public boolean canWorkShift(Doctor doctor, LocalDate date) {
         boolean shiftAvailable = isShiftAvailable(date);
         boolean couldWorkOP = couldWorkOP(doctor, date);
-        boolean weekday = isWeekday(date);
-        boolean weekend = isWeekend(date);
+        boolean weekday = !dates.isWeekend(date);
+        boolean weekend = dates.isWeekend(date);
         boolean workedTooManyShiftsThisMonth = hasWorkedTooManyShiftsThisMonth(doctor, date);
         boolean workedTooManyWeekendShiftsThisMonth = hasWorkedTooManyWeekendShiftsThisMonth(doctor, date);
         boolean workedShiftDayBefore = isWorkedShiftDayBefore(doctor, date);
+        boolean workedShiftLastWeekend = isWorkedShiftLastWeekend(doctor, date);
         boolean okForDoctorThatDay = isOkForDoctorThatDay(doctor, date);
         boolean hasVacation = dienstplan.isDoctorWorking(date, jobs.getUrlaub(), doctor);
         if (!shiftAvailable) {
@@ -61,7 +65,22 @@ public class ShiftDecider {
             explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "It's the weekend and the Doc has vacation today.");
             return false;
         }
+        if (weekend && workedShiftLastWeekend) {
+            explanations.addExplanation(date, Jobs.JobName.DIENST, doctor.getDocEnum(), "It's the weekend and the Doc did a shift last weekend.");
+            return false;
+        }
         return true;
+    }
+
+    private boolean isWorkedShiftLastWeekend(Doctor doctor, LocalDate date) {
+        LocalDate sat;
+        LocalDate sun;
+        if (date.getDayOfWeek() == SATURDAY) sat = date.minusDays(7);
+        else if (date.getDayOfWeek() == SUNDAY) sat = date.minusDays(8);
+        else sat = dates.getNearestPreviousDayTo(date, SATURDAY);
+        sun = sat.plusDays(1);
+        return dienstplan.isDoctorWorking(sat, jobs.getDienst(), doctor) ||
+                dienstplan.isDoctorWorking(sun, jobs.getDienst(), doctor);
     }
 
     private boolean isShiftAvailable(LocalDate date) {
@@ -74,14 +93,6 @@ public class ShiftDecider {
         if (dienstplan.getAssignedDoctors(date, jobs.getStation()).contains(doctor)) return false;
         if (dienstplan.getAssignedDoctors(date, jobs.getUrlaub()).contains(doctor)) return false;
         return true;
-    }
-
-    private boolean isWeekday(LocalDate date) {
-        return (date.getDayOfWeek() != SATURDAY) && (date.getDayOfWeek() != SUNDAY);
-    }
-
-    private boolean isWeekend(LocalDate date) {
-        return !isWeekday(date);
     }
 
     private boolean hasWorkedTooManyShiftsThisMonth(Doctor doctor, LocalDate date) {
@@ -98,7 +109,7 @@ public class ShiftDecider {
     }
 
     private boolean isWorkedShiftDayBefore(Doctor doctor, LocalDate date) {
-        return dataFinder.getDoctorsDayBefore(date, 1, jobs.getDienst()).contains(doctor);
+                    return dataFinder.getDoctorsDayBefore(date, 1, jobs.getDienst()).contains(doctor);
     }
 
     private boolean isOkForDoctorThatDay(Doctor doctor, LocalDate date) {

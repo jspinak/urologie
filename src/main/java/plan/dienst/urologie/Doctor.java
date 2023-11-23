@@ -17,7 +17,19 @@ public class Doctor {
     private List<DayOfWeek> verfugbareTage = new ArrayList<>();
     private List<DayOfWeek> verfugbareTageDienst = new ArrayList<>();
     private int maxDiensteImMonat = 4;
+    private double shiftPrioritizationFactor = 1;
     private int calc; // for temp calculations (i.e. how many weekends in last month worked a shift)
+
+    public boolean isAvailableOn(DayOfWeek dayOfWeek, Jobs.JobName jobName) {
+        if (jobName == Jobs.JobName.DIENST) return verfugbareTageDienst.contains(dayOfWeek);
+        return verfugbareTage.contains(dayOfWeek);
+    }
+
+    public boolean isAvailableEveryDay(Jobs.JobName jobName) {
+        for (DayOfWeek day : DayOfWeek.values())
+            if (!isAvailableOn(day, jobName)) return false;
+        return true;
+    }
 
     public static class Builder {
 

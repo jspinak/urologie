@@ -26,6 +26,8 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// https://mvnrepository.com/artifact/com.google.ortools/ortools-java
+	implementation group: 'com.google.ortools', name: 'ortools-java', version: '9.8.3296'
 }
 
 tasks.named('bootBuildImage') {

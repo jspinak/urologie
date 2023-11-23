@@ -25,6 +25,16 @@ public class DataFinder {
         return dienstplan.ifAssignedGetDoctors(date.minusDays(daysBefore), job);
     }
 
+    public int getTimesDoctorScheduledThisQuarter(int year, int quartil, Doctor doctor, Job job) {
+        int timesScheduled = 0;
+        for (int i=0; i<3; i++) {
+            timesScheduled += getTimesDoctorScheduledThisMonth(
+                    LocalDate.of(year, quartil*3-2+i, 1),
+                    doctor, job);
+        }
+        return timesScheduled;
+    }
+
     public int getTimesDoctorScheduledThisMonth(LocalDate date, Doctor doctor, Job job) {
         return getTimesDoctorScheduledThisMonth(date, doctor, job, DayOfWeek.values());
     }
@@ -54,13 +64,18 @@ public class DataFinder {
 
     public List<Doctor> sortDoctorsByShiftAvailability(int year, int month, List<Doctor> doctors) {
         LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
         doctors.forEach(doc -> {
             int maxShifts = Math.min(doc.getMaxDiensteImMonat(), jobs.getDienst().getMaxPerMonthPerDoctor());
             doc.setCalc(maxShifts - getTimesDoctorScheduledThisMonth(startDate, doc, jobs.getDienst()));
         });
         doctors.sort(Comparator.comparingDouble(Doctor::getCalc).reversed());
         return doctors;
+    }
+
+    public int getAvailableJobsLeftThisMonth(LocalDate date, Doctor doctor, Job job) {
+        int maxShifts = job.getMaxPerMonthPerDoctor();
+        if (job == jobs.getDienst()) maxShifts = Math.min(doctor.getMaxDiensteImMonat(), maxShifts);
+        return maxShifts - getTimesDoctorScheduledThisMonth(date, doctor, job);
     }
 
 }
