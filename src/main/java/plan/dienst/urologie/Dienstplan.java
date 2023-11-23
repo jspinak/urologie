@@ -1,28 +1,24 @@
 package plan.dienst.urologie;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.*;
 
-@Component
 @Getter
+@Setter
 public class Dienstplan {
-
-    private final Dates dates;
 
     private Map<LocalDate, DailyPlan> schedule = new HashMap<>();
     private LocalDate startDate;
     private LocalDate endDate;
-
-    public Dienstplan(Dates dates) {
-        this.dates = dates;
-    }
+    private double score;
 
     public void initDates(int jahr, int quartil) {
-        startDate = dates.getStartDate(jahr, quartil);
-        endDate = dates.getEndDate(jahr, quartil);
+        startDate = Dates.getStartDate(jahr, quartil);
+        endDate = Dates.getEndDate(jahr, quartil);
         // Iterate over the range of dates
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             LocalDate finalDate = date;

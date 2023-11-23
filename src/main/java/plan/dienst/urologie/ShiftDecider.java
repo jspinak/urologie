@@ -10,31 +10,24 @@ import static java.time.DayOfWeek.*;
 public class ShiftDecider {
 
     private final Jobs jobs;
-    private final Doctors doctors;
     private final DataFinder dataFinder;
-    private final Dienstplan dienstplan;
     private final Explanations explanations;
-    private final Dates dates;
 
-    public ShiftDecider(Jobs jobs, Doctors doctors, DataFinder dataFinder, Dienstplan dienstplan, Explanations explanations,
-                        Dates dates) {
+    public ShiftDecider(Jobs jobs, DataFinder dataFinder, Explanations explanations) {
         this.jobs = jobs;
-        this.doctors = doctors;
         this.dataFinder = dataFinder;
-        this.dienstplan = dienstplan;
         this.explanations = explanations;
-        this.dates = dates;
     }
 
-    public boolean canWorkShift(Doctor doctor, LocalDate date) {
-        boolean shiftAvailable = isShiftAvailable(date);
-        boolean couldWorkOP = couldWorkOP(doctor, date);
-        boolean weekday = !dates.isWeekend(date);
-        boolean weekend = dates.isWeekend(date);
-        boolean workedTooManyShiftsThisMonth = hasWorkedTooManyShiftsThisMonth(doctor, date);
-        boolean workedTooManyWeekendShiftsThisMonth = hasWorkedTooManyWeekendShiftsThisMonth(doctor, date);
-        boolean workedShiftDayBefore = isWorkedShiftDayBefore(doctor, date);
-        boolean workedShiftLastWeekend = isWorkedShiftLastWeekend(doctor, date);
+    public boolean canWorkShift(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
+        boolean shiftAvailable = isShiftAvailable(dienstplan, date);
+        boolean couldWorkOP = couldWorkOP(dienstplan, doctor, date);
+        boolean weekday = !Dates.isWeekend(date);
+        boolean weekend = Dates.isWeekend(date);
+        boolean workedTooManyShiftsThisMonth = hasWorkedTooManyShiftsThisMonth(dienstplan, doctor, date);
+        boolean workedTooManyWeekendShiftsThisMonth = hasWorkedTooManyWeekendShiftsThisMonth(dienstplan, doctor, date);
+        boolean workedShiftDayBefore = isWorkedShiftDayBefore(dienstplan, doctor, date);
+        boolean workedShiftLastWeekend = isWorkedShiftLastWeekend(dienstplan, doctor, date);
         boolean okForDoctorThatDay = isOkForDoctorThatDay(doctor, date);
         boolean hasVacation = dienstplan.isDoctorWorking(date, jobs.getUrlaub(), doctor);
         if (!shiftAvailable) {
@@ -72,22 +65,22 @@ public class ShiftDecider {
         return true;
     }
 
-    private boolean isWorkedShiftLastWeekend(Doctor doctor, LocalDate date) {
+    private boolean isWorkedShiftLastWeekend(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
         LocalDate sat;
         LocalDate sun;
         if (date.getDayOfWeek() == SATURDAY) sat = date.minusDays(7);
         else if (date.getDayOfWeek() == SUNDAY) sat = date.minusDays(8);
-        else sat = dates.getNearestPreviousDayTo(date, SATURDAY);
+        else sat = Dates.getNearestPreviousDayTo(date, SATURDAY);
         sun = sat.plusDays(1);
         return dienstplan.isDoctorWorking(sat, jobs.getDienst(), doctor) ||
                 dienstplan.isDoctorWorking(sun, jobs.getDienst(), doctor);
     }
 
-    private boolean isShiftAvailable(LocalDate date) {
+    private boolean isShiftAvailable(Dienstplan dienstplan, LocalDate date) {
         return !dienstplan.isAssigned(date, jobs.getDienst());
     }
 
-    private boolean couldWorkOP(Doctor doctor, LocalDate date) {
+    private boolean couldWorkOP(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
         if (dienstplan.getAssignedDoctors(date, jobs.getEaz()).contains(doctor)) return false;
         if (dienstplan.getAssignedDoctors(date, jobs.getZna()).contains(doctor)) return false;
         if (dienstplan.getAssignedDoctors(date, jobs.getStation()).contains(doctor)) return false;
@@ -95,21 +88,21 @@ public class ShiftDecider {
         return true;
     }
 
-    private boolean hasWorkedTooManyShiftsThisMonth(Doctor doctor, LocalDate date) {
-        int timesWorked = dataFinder.getTimesDoctorScheduledThisMonth(date, doctor, jobs.getDienst());
+    private boolean hasWorkedTooManyShiftsThisMonth(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
+        int timesWorked = dataFinder.getTimesDoctorScheduledThisMonth(dienstplan, date, doctor, jobs.getDienst());
         int timesAllowed = jobs.getDienst().getMaxPerMonthPerDoctor();
         int maxForDoctor = doctor.getMaxDiensteImMonat();
         return timesWorked >= Math.min(timesAllowed, maxForDoctor);
     }
 
-    private boolean hasWorkedTooManyWeekendShiftsThisMonth(Doctor doctor, LocalDate date) {
-        int timesWorked = dataFinder.getTimesDoctorScheduledThisMonth(date, doctor, jobs.getDienst(), SATURDAY, SUNDAY);
+    private boolean hasWorkedTooManyWeekendShiftsThisMonth(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
+        int timesWorked = dataFinder.getTimesDoctorScheduledThisMonth(dienstplan, date, doctor, jobs.getDienst(), SATURDAY, SUNDAY);
         int timesAllowed = jobs.getDienst().getMaxWeekendJobsPerMonth();
         return timesWorked >= timesAllowed;
     }
 
-    private boolean isWorkedShiftDayBefore(Doctor doctor, LocalDate date) {
-                    return dataFinder.getDoctorsDayBefore(date, 1, jobs.getDienst()).contains(doctor);
+    private boolean isWorkedShiftDayBefore(Dienstplan dienstplan, Doctor doctor, LocalDate date) {
+                    return dataFinder.getDoctorsDayBefore(dienstplan, date, 1, jobs.getDienst()).contains(doctor);
     }
 
     private boolean isOkForDoctorThatDay(Doctor doctor, LocalDate date) {

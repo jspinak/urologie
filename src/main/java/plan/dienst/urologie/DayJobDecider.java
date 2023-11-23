@@ -11,40 +11,35 @@ public class DayJobDecider {
     private final Jobs jobs;
     private final Doctors doctors;
     private final DataFinder dataFinder;
-    private final Dienstplan dienstplan;
-    private final Dates dates;
     private final Explanations explanations;
 
-    public DayJobDecider(Jobs jobs, Doctors doctors, DataFinder dataFinder, Dienstplan dienstplan, Dates dates,
-                         Explanations explanations) {
+    public DayJobDecider(Jobs jobs, Doctors doctors, DataFinder dataFinder, Explanations explanations) {
         this.jobs = jobs;
         this.doctors = doctors;
         this.dataFinder = dataFinder;
-        this.dienstplan = dienstplan;
-        this.dates = dates;
         this.explanations = explanations;
     }
 
-    public boolean canWork(Doctor doctor, LocalDate date, Job job) {
-        boolean shiftFull = isJobFull(date, job);
-        boolean needsPartTime = isNeedsPartTime(date, job);
-        boolean docWorkingOtherJob = isWorkingAnotherJob(date, doctor);
+    public boolean canWork(Dienstplan dienstplan, Doctor doctor, LocalDate date, Job job) {
+        boolean shiftFull = isJobFull(dienstplan, date, job);
+        boolean needsPartTime = isNeedsPartTime(dienstplan, date, job);
+        boolean docWorkingOtherJob = isWorkingAnotherJob(dienstplan, date, doctor);
         boolean jobDoneThisDay = isJobDoneThisDay(date, job);
-        boolean workingDayBefore = isWorkingDayBefore(doctor, date, job);
+        boolean workingDayBefore = isWorkingDayBefore(dienstplan, doctor, date, job);
         boolean needSameDocAllWeek = shouldBeSameDoctorAllWeek(job);
         boolean jobDoneDayBefore = isJobDoneDayBefore(date, job);
-        boolean workedJobTooMuch = workedThisJobTooMuchThisMonth(date, job, doctor);
+        boolean workedJobTooMuch = workedThisJobTooMuchThisMonth(dienstplan, date, job, doctor);
         boolean availableThisDay = isAvailableThisDay(date, doctor);
-        boolean vacationThisWeek = isDoingJobThisWeek(date, doctor, jobs.getUrlaub());
+        boolean vacationThisWeek = isDoingJobThisWeek(dienstplan, date, doctor, jobs.getUrlaub());
         boolean vacationToday = dienstplan.getAssignedDoctors(date, jobs.getUrlaub()).contains(doctor);
         boolean jobOP = job == jobs.getOp();
-        boolean doingShiftThisWeek = isDoingJobThisWeek(date, doctor, jobs.getDienst());
-        boolean doesShiftDayBefore = isDoingShiftDayBefore(date, doctor);
+        boolean doingShiftThisWeek = isDoingJobThisWeek(dienstplan, date, doctor, jobs.getDienst());
+        boolean doesShiftDayBefore = isDoingShiftDayBefore(dienstplan, date, doctor);
         boolean partTimeDoc = !doctor.isVollzeit();
-        boolean onePartTimeAvailableEveryDayThisWeek = atLeastOnePartTimeAvailableEveryDayThisWeek(date);
+        boolean onePartTimeAvailableEveryDayThisWeek = atLeastOnePartTimeAvailableEveryDayThisWeek(dienstplan, date);
         boolean docHasThisDayAvailableForShifts = isShiftOK(doctor, date); // Doctors shouldn't work OP when they can't do a shift. On the other hand, some doctors are unavailable to work shifts on certain days but available for day jobs.
-        boolean didAnotherWeeklyJobDayBefore = isDoingOtherWeeklyJobDayBefore(doctor, date, job);
-        boolean docOnThisJobDayBeforeIsDifferentAndFullTime = isDocOnThisJobDayBeforeIsDifferentAndFullTime(doctor, date, job);
+        boolean didAnotherWeeklyJobDayBefore = isDoingOtherWeeklyJobDayBefore(dienstplan, doctor, date, job);
+        boolean docOnThisJobDayBeforeIsDifferentAndFullTime = isDocOnThisJobDayBeforeIsDifferentAndFullTime(dienstplan, doctor, date, job);
 
         if (!jobDoneThisDay) {
             explanations.addExplanation(date, job.getJobEnum(), doctor.getDocEnum(),
@@ -115,13 +110,13 @@ public class DayJobDecider {
         return true;
     }
 
-    private boolean isDocOnThisJobDayBeforeIsDifferentAndFullTime(Doctor doctor, LocalDate date, Job job) {
+    private boolean isDocOnThisJobDayBeforeIsDifferentAndFullTime(Dienstplan dienstplan, Doctor doctor, LocalDate date, Job job) {
         List<Doctor> docs = dienstplan.getAssignedDoctors(date.minusDays(1), job);
         if (docs.isEmpty() || docs.contains(doctor)) return false;
         return docs.get(0).isVollzeit();
     }
 
-    private boolean isDoingOtherWeeklyJobDayBefore(Doctor doctor, LocalDate date, Job job) {
+    private boolean isDoingOtherWeeklyJobDayBefore(Dienstplan dienstplan, Doctor doctor, LocalDate date, Job job) {
         List<Job> otherWeeklyJobs = jobs.getAllJobs().stream().filter(j -> job.isOneDoctorPerWeek() && j != job).toList();
         for (Job j : otherWeeklyJobs) if (dienstplan.getAssignedDoctors(date, j).contains(doctor)) return true;
         return false;
@@ -131,9 +126,9 @@ public class DayJobDecider {
         return doctor.getVerfugbareTageDienst().contains(date.getDayOfWeek());
     }
 
-    private boolean atLeastOnePartTimeAvailableEveryDayThisWeek(LocalDate date) {
-        LocalDate monday = dates.getNearestPreviousMondayTo(date);
-        LocalDate friday = dates.getNearestNextDayTo(date, DayOfWeek.FRIDAY);
+    private boolean atLeastOnePartTimeAvailableEveryDayThisWeek(Dienstplan dienstplan, LocalDate date) {
+        LocalDate monday = Dates.getNearestPreviousMondayTo(date);
+        LocalDate friday = Dates.getNearestNextDayTo(date, DayOfWeek.FRIDAY);
         List<Doctor> partTimers = doctors.getAllDoctors().stream().filter(doctor -> !doctor.isVollzeit()).toList();
         for (LocalDate d = monday; !d.isAfter(friday); d = d.plusDays(1)) {
             int available = 0;
@@ -149,16 +144,16 @@ public class DayJobDecider {
         return true;
     }
 
-    private boolean isDoingShiftDayBefore(LocalDate date, Doctor doctor) {
+    private boolean isDoingShiftDayBefore(Dienstplan dienstplan, LocalDate date, Doctor doctor) {
         LocalDate dayBefore = date.minusDays(1);
         return dienstplan.getAssignedDoctors(dayBefore, jobs.getDienst()).contains(doctor);
     }
 
-    private boolean isJobFull(LocalDate date, Job job) {
-        return getJobFullness(date, job) >= job.getMaxDoctorsPerDay();
+    private boolean isJobFull(Dienstplan dienstplan, LocalDate date, Job job) {
+        return getJobFullness(dienstplan, date, job) >= job.getMaxDoctorsPerDay();
     }
 
-    private double getJobFullness(LocalDate date, Job job) {
+    private double getJobFullness(Dienstplan dienstplan, LocalDate date, Job job) {
         List<Doctor> docsWorking = dienstplan.getAssignedDoctors(date, job);
         double full = 0;
         for (Doctor doc : docsWorking) full += fullTimeMultiplier(doc);
@@ -170,13 +165,13 @@ public class DayJobDecider {
         return 0.5;
     }
 
-    private boolean isNeedsPartTime(LocalDate date, Job job) {
-        double fullness = getJobFullness(date, job);
+    private boolean isNeedsPartTime(Dienstplan dienstplan, LocalDate date, Job job) {
+        double fullness = getJobFullness(dienstplan, date, job);
         double jobMax = job.getMaxDoctorsPerDay();
         return (fullness > jobMax - 1) && (fullness < jobMax);
     }
 
-    private boolean isWorkingAnotherJob(LocalDate date, Doctor doctor) {
+    private boolean isWorkingAnotherJob(Dienstplan dienstplan, LocalDate date, Doctor doctor) {
         for (Job job : jobs.getDayJobs()) {
             if (dienstplan.getAssignedDoctors(date, job).contains(doctor)) return true;
         }
@@ -187,16 +182,16 @@ public class DayJobDecider {
         return job.getVerfugbareTage().contains(date.getDayOfWeek());
     }
 
-    private boolean isWorkingDayBefore(Doctor doctor, LocalDate date, Job job) {
-        return dataFinder.getDoctorsDayBefore(date, 1, job).contains(doctor);
+    private boolean isWorkingDayBefore(Dienstplan dienstplan, Doctor doctor, LocalDate date, Job job) {
+        return dataFinder.getDoctorsDayBefore(dienstplan, date, 1, job).contains(doctor);
     }
 
     private boolean shouldBeSameDoctorAllWeek(Job job) {
         return job.isOneDoctorPerWeek();
     }
 
-    private boolean workedThisJobTooMuchThisMonth(LocalDate date, Job job, Doctor doc) {
-        int timesDidJob = dataFinder.getTimesDoctorScheduledThisMonth(date, doc, job);
+    private boolean workedThisJobTooMuchThisMonth(Dienstplan dienstplan, LocalDate date, Job job, Doctor doc) {
+        int timesDidJob = dataFinder.getTimesDoctorScheduledThisMonth(dienstplan, date, doc, job);
         return timesDidJob >= job.getMaxPerMonthPerDoctor();
     }
 
@@ -208,9 +203,9 @@ public class DayJobDecider {
         return doctor.getVerfugbareTage().contains(date.getDayOfWeek());
     }
 
-    private boolean isDoingJobThisWeek(LocalDate date, Doctor doctor, Job job) {
-        LocalDate monday = dates.getNearestPreviousMondayTo(date);
-        LocalDate friday = dates.getNearestNextDayTo(date, DayOfWeek.FRIDAY);
+    private boolean isDoingJobThisWeek(Dienstplan dienstplan, LocalDate date, Doctor doctor, Job job) {
+        LocalDate monday = Dates.getNearestPreviousMondayTo(date);
+        LocalDate friday = Dates.getNearestNextDayTo(date, DayOfWeek.FRIDAY);
         for (LocalDate d = monday; !d.isAfter(friday); d = d.plusDays(1)) {
             if (dienstplan.getAssignedDoctors(d, job).contains(doctor)) return true;
         }

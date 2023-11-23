@@ -8,39 +8,36 @@ import java.util.*;
 
 @Component
 public class DataFinder {
-
-    private final Dienstplan dienstplan;
     private final Jobs jobs;
 
-    public DataFinder(Dienstplan dienstplan, Jobs jobs) {
-        this.dienstplan = dienstplan;
+    public DataFinder(Jobs jobs) {
         this.jobs = jobs;
     }
 
-    public List<Doctor> getDoctorsDayBefore(LocalDate date, Job job) {
+    public List<Doctor> getDoctorsDayBefore(Dienstplan dienstplan, LocalDate date, Job job) {
         return dienstplan.ifAssignedGetDoctors(date.minusDays(1), job);
     }
 
-    public List<Doctor> getDoctorsDayBefore(LocalDate date, int daysBefore, Job job) {
+    public List<Doctor> getDoctorsDayBefore(Dienstplan dienstplan, LocalDate date, int daysBefore, Job job) {
         return dienstplan.ifAssignedGetDoctors(date.minusDays(daysBefore), job);
     }
 
-    public int getTimesDoctorScheduledThisQuarter(int year, int quartil, Doctor doctor, Job job) {
+    public int getTimesDoctorScheduledThisQuarter(Dienstplan dienstplan, int year, int quartil, Doctor doctor, Job job) {
         int timesScheduled = 0;
         for (int i=0; i<3; i++) {
-            timesScheduled += getTimesDoctorScheduledThisMonth(
+            timesScheduled += getTimesDoctorScheduledThisMonth(dienstplan,
                     LocalDate.of(year, quartil*3-2+i, 1),
                     doctor, job);
         }
         return timesScheduled;
     }
 
-    public int getTimesDoctorScheduledThisMonth(LocalDate date, Doctor doctor, Job job) {
-        return getTimesDoctorScheduledThisMonth(date, doctor, job, DayOfWeek.values());
+    public int getTimesDoctorScheduledThisMonth(Dienstplan dienstplan, LocalDate date, Doctor doctor, Job job) {
+        return getTimesDoctorScheduledThisMonth(dienstplan, date, doctor, job, DayOfWeek.values());
     }
 
     // can calculate weekend shifts, for example
-    public int getTimesDoctorScheduledThisMonth(LocalDate date, Doctor doctor, Job job, DayOfWeek... daysToUse) {
+    public int getTimesDoctorScheduledThisMonth(Dienstplan dienstplan, LocalDate date, Doctor doctor, Job job, DayOfWeek... daysToUse) {
         int didJob = 0;
         int month = date.getMonthValue();
         int year = date.getYear();
@@ -56,26 +53,26 @@ public class DataFinder {
         return didJob;
     }
 
-    public List<Doctor> sortByScheduledJobsThisMonth(LocalDate date, List<Doctor> doctors, Job job) {
-        doctors.forEach(doc -> doc.setCalc(getTimesDoctorScheduledThisMonth(date, doc, job)));
+    public List<Doctor> sortByScheduledJobsThisMonth(Dienstplan dienstplan, LocalDate date, List<Doctor> doctors, Job job) {
+        doctors.forEach(doc -> doc.setCalc(getTimesDoctorScheduledThisMonth(dienstplan, date, doc, job)));
         doctors.sort(Comparator.comparingDouble(Doctor::getCalc));
         return doctors;
     }
 
-    public List<Doctor> sortDoctorsByShiftAvailability(int year, int month, List<Doctor> doctors) {
+    public List<Doctor> sortDoctorsByShiftAvailability(Dienstplan dienstplan, int year, int month, List<Doctor> doctors) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         doctors.forEach(doc -> {
             int maxShifts = Math.min(doc.getMaxDiensteImMonat(), jobs.getDienst().getMaxPerMonthPerDoctor());
-            doc.setCalc(maxShifts - getTimesDoctorScheduledThisMonth(startDate, doc, jobs.getDienst()));
+            doc.setCalc(maxShifts - getTimesDoctorScheduledThisMonth(dienstplan, startDate, doc, jobs.getDienst()));
         });
         doctors.sort(Comparator.comparingDouble(Doctor::getCalc).reversed());
         return doctors;
     }
 
-    public int getAvailableJobsLeftThisMonth(LocalDate date, Doctor doctor, Job job) {
+    public int getAvailableJobsLeftThisMonth(Dienstplan dienstplan, LocalDate date, Doctor doctor, Job job) {
         int maxShifts = job.getMaxPerMonthPerDoctor();
         if (job == jobs.getDienst()) maxShifts = Math.min(doctor.getMaxDiensteImMonat(), maxShifts);
-        return maxShifts - getTimesDoctorScheduledThisMonth(date, doctor, job);
+        return maxShifts - getTimesDoctorScheduledThisMonth(dienstplan, date, doctor, job);
     }
 
 }

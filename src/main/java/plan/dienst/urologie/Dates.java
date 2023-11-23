@@ -6,10 +6,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
-@Component
 public class Dates {
 
-    public LocalDate getNearestPreviousMondayTo(LocalDate date) {
+    public static LocalDate getNearestPreviousMondayTo(LocalDate date) {
         if (date.getDayOfWeek() == DayOfWeek.MONDAY) {
             return date; // date is already monday
         } else {
@@ -18,12 +17,12 @@ public class Dates {
         }
     }
 
-    public LocalDate getNearestPreviousMondayTo(int jahr, int monat, int tag) {
+    public static LocalDate getNearestPreviousMondayTo(int jahr, int monat, int tag) {
         LocalDate inputDate = LocalDate.of(jahr, monat, tag);
         return getNearestPreviousMondayTo(inputDate);
     }
 
-    public LocalDate getNearestNextSundayTo(LocalDate date) {
+    public static LocalDate getNearestNextSundayTo(LocalDate date) {
         if (date.getDayOfWeek() == DayOfWeek.SUNDAY) {
             return date; // date is already sunday
         } else {
@@ -32,32 +31,32 @@ public class Dates {
         }
     }
 
-    public LocalDate getNearestPreviousDayTo(LocalDate date, DayOfWeek dayOfWeek) {
+    public static LocalDate getNearestPreviousDayTo(LocalDate date, DayOfWeek dayOfWeek) {
         if (date.getDayOfWeek() == dayOfWeek) {
             return date;
         } else return date.with(TemporalAdjusters.previous(dayOfWeek));
     }
 
-    public LocalDate getNearestNextDayTo(LocalDate date, DayOfWeek dayOfWeek) {
+    public static LocalDate getNearestNextDayTo(LocalDate date, DayOfWeek dayOfWeek) {
         if (date.getDayOfWeek() == dayOfWeek) {
             return date;
         } else return date.with(TemporalAdjusters.next(dayOfWeek));
     }
 
-    public LocalDate getNearestNextSundayTo(int jahr, int monat, int tag) {
+    public static LocalDate getNearestNextSundayTo(int jahr, int monat, int tag) {
         LocalDate inputDate = LocalDate.of(jahr, monat, tag);
         return getNearestPreviousMondayTo(inputDate);
     }
 
-    public LocalDate getStartDate(int jahr, int quartil) {
+    public static LocalDate getStartDate(int jahr, int quartil) {
         return getNearestPreviousMondayTo(jahr, quartil*3-2, 1);
     }
 
-    public LocalDate getEndDate(int jahr, int quartil) {
-        return getNearestNextSundayTo(jahr, quartil*3, 30); // could be more specific with 31 on some dates
+    public static LocalDate getEndDate(int jahr, int quartil) {
+        return LocalDate.of(jahr, quartil*3, 1).plusMonths(1).minusDays(1);
     }
 
-    public boolean isWeekend(LocalDate date) {
+    public static boolean isWeekend(LocalDate date) {
         return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
