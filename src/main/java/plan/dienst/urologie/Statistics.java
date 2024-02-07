@@ -32,7 +32,7 @@ public class Statistics {
         // uneven job distribution
         double shiftDistScore = getShiftDistributionScore(getShiftDistribution(dienstplan, year, quartil)) * 10;
         double OPdistScore = getOPdistributionScore(getOPdistribution(dienstplan, year, quartil));
-        System.out.println("scores: empty jobs " + emptyJobScore + ", not working " + notWorkingScore + ", shift dist " + shiftDistScore + ", OP dist " + OPdistScore);
+        //System.out.println("scores: empty jobs " + emptyJobScore + ", not working " + notWorkingScore + ", shift dist " + shiftDistScore + ", OP dist " + OPdistScore);
         score = OPdistScore; //shiftDistScore + emptyJobScore + notWorkingScore +
         return score;
     }

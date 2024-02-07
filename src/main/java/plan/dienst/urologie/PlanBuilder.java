@@ -53,10 +53,10 @@ public class PlanBuilder {
         List<Dienstplan> dienstplans = new ArrayList<>();
         Dienstplan bestPlan = makePlan(presets, jahr, quartil);
         double bestScore = bestPlan.getScore();
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<10000; i++) {
             Dienstplan dienstplan = makePlan(presets, jahr, quartil);
             dienstplans.add(dienstplan);
-            System.out.println("score " + dienstplan.getScore());
+            //System.out.println("score " + dienstplan.getScore());
             if (dienstplan.getScore() < bestScore) {
                 bestPlan = dienstplan;
                 bestScore = dienstplan.getScore();
